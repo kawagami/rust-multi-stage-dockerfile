@@ -1,0 +1,19 @@
+FROM rust:slim AS builder
+
+WORKDIR /app
+
+# 下面這段執行完會在 /app/docker 建立起 rust 專案並編譯完成放在 /app/docker/target/release 下有 docker 二進制執行檔(應該)
+RUN cargo new docker && \
+cd docker && \
+cargo build --release
+
+# CMD ["/app/docker/target/release/docker"]
+
+FROM debian:buster-slim
+
+WORKDIR /app
+
+# 從 builder 的路徑下 copy 編譯完的執行檔到最後 stage 的地方，可控制要放哪
+COPY --from=builder /app/docker/target/release/docker /app/docker
+
+CMD ["/app/docker"]
